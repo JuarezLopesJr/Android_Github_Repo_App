@@ -80,6 +80,28 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
+        viewModel.repos.observe(this, Observer { reposList ->
+            if (!reposList.isNullOrEmpty()) {
+                val spinnerAdapter = ArrayAdapter(
+                    this@MainActivity,
+                    android.R.layout.simple_spinner_dropdown_item,
+                    reposList
+                )
+
+                repositoriesSpinner.adapter = spinnerAdapter
+                repositoriesSpinner.isEnabled = true
+            } else {
+                val spinnerAdapter = ArrayAdapter(
+                    this@MainActivity,
+                    android.R.layout.simple_spinner_dropdown_item,
+                    arrayListOf("User has no repositories")
+                )
+
+                repositoriesSpinner.adapter = spinnerAdapter
+                repositoriesSpinner.isEnabled = false
+            }
+        })
+
         viewModel.error.observe(this, Observer { message ->
             Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
         })
@@ -114,7 +136,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onLoadRepos(view: View) {
-
+        token?.let {
+            viewModel.onLoadRepos(it)
+        }
     }
 
     fun onPostComment(view: View) {

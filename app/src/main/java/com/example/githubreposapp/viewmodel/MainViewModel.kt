@@ -2,6 +2,7 @@ package com.example.githubreposapp.viewmodel
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.githubreposapp.model.GithubRepo
 import com.example.githubreposapp.model.GithubService
 import com.example.githubreposapp.model.GithubToken
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -16,6 +17,7 @@ class MainViewModel : ViewModel() {
 
     val token = MutableLiveData<String>()
     val error = MutableLiveData<String>()
+    val repos = MutableLiveData<List<GithubRepo>>()
 
     fun getToken(clientId: String, clientSecret: String, code: String) {
         compositeDisposable.add(
@@ -34,6 +36,25 @@ class MainViewModel : ViewModel() {
                 })
         )
     }
+
+    fun onLoadRepos(token: String) {
+        compositeDisposable.add(
+            GithubService.getAuthorizedApi(token).getRepos()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(object : DisposableSingleObserver<List<GithubRepo>>() {
+                    override fun onSuccess(value: List<GithubRepo>) {
+                        repos.value = value
+                    }
+
+                    override fun onError(e: Throwable) {
+                        e.printStackTrace()
+                        error.value = "Can't load repos"
+                    }
+                })
+        )
+    }
+
 
     /* avoiding memory leaks by destroying RxJava */
     override fun onCleared() {

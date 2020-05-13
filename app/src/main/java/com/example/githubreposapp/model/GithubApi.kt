@@ -1,10 +1,7 @@
 package com.example.githubreposapp.model
 
 import io.reactivex.Single
-import retrofit2.http.Field
-import retrofit2.http.FormUrlEncoded
-import retrofit2.http.Headers
-import retrofit2.http.POST
+import retrofit2.http.*
 
 interface GithubApi {
     @Headers("Accept: application/json")
@@ -15,4 +12,7 @@ interface GithubApi {
         @Field("client_secret") clientSecret: String,
         @Field("code") code: String
     ): Single<GithubToken> // Single - observer that emits one value then finishes
+
+    @GET("users/repos")
+    fun getRepos(): Single<List<GithubRepo>>
 }
