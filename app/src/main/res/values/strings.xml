@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">GitHub Repos App</string>
+    <string name="oauthUrl">https://github.com/login/oauth/authorize</string>
+    <string name="clientId">5dc628dacc0a1c5f71cb</string>
+    <string name="clientSecret">c9e4bc3886ec30fbad2531c676e7a046b2d9bd31</string>
+    <string name="callbackUrl">githubrepos://callback</string>
+</resources>
