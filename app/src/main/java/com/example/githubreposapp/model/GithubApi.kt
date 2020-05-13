@@ -15,4 +15,10 @@ interface GithubApi {
 
     @GET("users/repos")
     fun getRepos(): Single<List<GithubRepo>>
+
+    @GET("repos/{owner}/{repo}/pulls")
+    fun getPullRequests(
+        @Path("owner") owner: String,
+        @Path("repo") repo: String
+    ): Single<List<GithubPR>>
 }

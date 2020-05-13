@@ -11,6 +11,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import com.example.githubreposapp.R
+import com.example.githubreposapp.model.GithubRepo
 import com.example.githubreposapp.viewmodel.MainViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -38,6 +39,12 @@ class MainActivity : AppCompatActivity() {
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 // Load PullRequests
+                if (parent?.selectedItem is GithubRepo) {
+                    val currentRepo = parent.selectedItem as GithubRepo
+                    token?.let {
+                        viewModel.onLoadPR(currentRepo.owner.login, currentRepo.name, it)
+                    }
+                }
             }
         }
 
@@ -102,6 +109,28 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
+        viewModel.pullRequest.observe(this, Observer { prList ->
+            if (!prList.isNullOrEmpty()) {
+                val spinnerAdapter = ArrayAdapter(
+                    this@MainActivity,
+                    android.R.layout.simple_spinner_dropdown_item,
+                    prList
+                )
+
+                prsSpinner.adapter = spinnerAdapter
+                prsSpinner.isEnabled = true
+            } else {
+                val spinnerAdapter = ArrayAdapter(
+                    this@MainActivity,
+                    android.R.layout.simple_spinner_dropdown_item,
+                    arrayListOf("User has no pull requests")
+                )
+
+                prsSpinner.adapter = spinnerAdapter
+                prsSpinner.isEnabled = false
+            }
+        })
+
         viewModel.error.observe(this, Observer { message ->
             Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
         })
@@ -136,6 +165,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onLoadRepos(view: View) {
+
         token?.let {
             viewModel.onLoadRepos(it)
         }

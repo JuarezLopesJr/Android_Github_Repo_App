@@ -2,6 +2,7 @@ package com.example.githubreposapp.viewmodel
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.githubreposapp.model.GithubPR
 import com.example.githubreposapp.model.GithubRepo
 import com.example.githubreposapp.model.GithubService
 import com.example.githubreposapp.model.GithubToken
@@ -18,6 +19,7 @@ class MainViewModel : ViewModel() {
     val token = MutableLiveData<String>()
     val error = MutableLiveData<String>()
     val repos = MutableLiveData<List<GithubRepo>>()
+    val pullRequest = MutableLiveData<List<GithubPR>>()
 
     fun getToken(clientId: String, clientSecret: String, code: String) {
         compositeDisposable.add(
@@ -38,6 +40,7 @@ class MainViewModel : ViewModel() {
     }
 
     fun onLoadRepos(token: String) {
+
         compositeDisposable.add(
             GithubService.getAuthorizedApi(token).getRepos()
                 .subscribeOn(Schedulers.io())
@@ -53,6 +56,27 @@ class MainViewModel : ViewModel() {
                     }
                 })
         )
+    }
+
+
+    fun onLoadPR(owner: String?, repo: String?, token: String) {
+        if (owner != null && repo != null) {
+            compositeDisposable.add(
+                GithubService.getAuthorizedApi(token).getPullRequests(owner, repo)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribeWith(object : DisposableSingleObserver<List<GithubPR>>() {
+                        override fun onSuccess(value: List<GithubPR>) {
+                            pullRequest.value = value
+                        }
+
+                        override fun onError(e: Throwable) {
+                            e.printStackTrace()
+                            error.value = "Can't load PRs"
+                        }
+                    })
+            )
+        }
     }
 
 
