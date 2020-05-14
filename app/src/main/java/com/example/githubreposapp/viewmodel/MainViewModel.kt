@@ -7,6 +7,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.observers.DisposableSingleObserver
 import io.reactivex.schedulers.Schedulers
+import okhttp3.ResponseBody
 
 class MainViewModel : ViewModel() {
     /* variable to be able to finish RxJava methods when the viewmodel is destroyed,
@@ -18,6 +19,7 @@ class MainViewModel : ViewModel() {
     val repos = MutableLiveData<List<GithubRepo>>()
     val pullRequest = MutableLiveData<List<GithubPR>>()
     val comments = MutableLiveData<List<GithubComments>>()
+    val postComment = MutableLiveData<Boolean>()
 
     fun getToken(clientId: String, clientSecret: String, code: String) {
         compositeDisposable.add(
@@ -97,6 +99,34 @@ class MainViewModel : ViewModel() {
         }
     }
 
+
+    fun onPostComment(
+        owner: String?,
+        repo: GithubRepo,
+        issueNumber: String?,
+        comment: GithubComments,
+        token: String
+    ) {
+        if (repo.owner.login != null && repo.name != null && issueNumber != null) {
+            compositeDisposable.add(
+                GithubService.getAuthorizedApi(token)
+                    .postComment(repo.owner.login, repo.name, issueNumber, comment)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribeWith(object : DisposableSingleObserver<ResponseBody>() {
+                        override fun onSuccess(t: ResponseBody) {
+                            postComment.value = true
+                        }
+
+                        override fun onError(e: Throwable) {
+                            e.printStackTrace()
+                            error.value = "Can't create comment"
+                        }
+                    })
+            )
+        }
+
+    }
 
     /* avoiding memory leaks by destroying RxJava */
     override fun onCleared() {

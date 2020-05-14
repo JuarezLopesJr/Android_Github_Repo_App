@@ -11,6 +11,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import com.example.githubreposapp.R
+import com.example.githubreposapp.model.GithubComments
 import com.example.githubreposapp.model.GithubPR
 import com.example.githubreposapp.model.GithubRepo
 import com.example.githubreposapp.viewmodel.MainViewModel
@@ -171,6 +172,26 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
+        viewModel.postComment.observe(this, Observer { success ->
+            if (success) {
+                commentET.setText("")
+                Toast.makeText(this@MainActivity, "Comment created", Toast.LENGTH_SHORT).show()
+                token?.let {
+                    val currentRepo = repositoriesSpinner.selectedItem as GithubRepo
+                    val currentPR = prsSpinner.selectedItem as GithubPR
+                    viewModel.onLoadComments(
+                        currentPR.user?.login,
+                        currentRepo.name,
+                        currentPR.number,
+                        it
+                    )
+                }
+            } else {
+                Toast.makeText(this@MainActivity, "Can't create comment", Toast.LENGTH_SHORT).show()
+            }
+
+        })
+
         viewModel.error.observe(this, Observer { message ->
             Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
         })
@@ -212,7 +233,24 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onPostComment(view: View) {
+        val comment = commentET.text.toString()
+        if (comment.isNotEmpty()) {
+            val currentRepo = repositoriesSpinner.selectedItem as GithubRepo
+            val currentPR = prsSpinner.selectedItem as GithubPR
 
+            token?.let {
+                viewModel.onPostComment(
+                    currentRepo.owner.login,
+                    currentRepo,
+                    currentPR.number,
+                    GithubComments(comment, null),
+                    it
+                )
+            }
+
+        } else {
+            Toast.makeText(this, "Please enter a comment", Toast.LENGTH_SHORT).show()
+        }
     }
 
 }
