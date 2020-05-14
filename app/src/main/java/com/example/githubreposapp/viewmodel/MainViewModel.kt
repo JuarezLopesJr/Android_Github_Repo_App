@@ -2,10 +2,7 @@ package com.example.githubreposapp.viewmodel
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.githubreposapp.model.GithubPR
-import com.example.githubreposapp.model.GithubRepo
-import com.example.githubreposapp.model.GithubService
-import com.example.githubreposapp.model.GithubToken
+import com.example.githubreposapp.model.*
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.observers.DisposableSingleObserver
@@ -20,6 +17,7 @@ class MainViewModel : ViewModel() {
     val error = MutableLiveData<String>()
     val repos = MutableLiveData<List<GithubRepo>>()
     val pullRequest = MutableLiveData<List<GithubPR>>()
+    val comments = MutableLiveData<List<GithubComments>>()
 
     fun getToken(clientId: String, clientSecret: String, code: String) {
         compositeDisposable.add(
@@ -73,6 +71,26 @@ class MainViewModel : ViewModel() {
                         override fun onError(e: Throwable) {
                             e.printStackTrace()
                             error.value = "Can't load PRs"
+                        }
+                    })
+            )
+        }
+    }
+
+    fun onLoadComments(owner: String?, repo: String?, issueNumber: String?, token: String) {
+        if (owner != null && repo != null && issueNumber != null) {
+            compositeDisposable.add(
+                GithubService.getAuthorizedApi(token).getComments(owner, repo, issueNumber)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribeWith(object : DisposableSingleObserver<List<GithubComments>>() {
+                        override fun onSuccess(value: List<GithubComments>) {
+                            comments.value = value
+                        }
+
+                        override fun onError(e: Throwable) {
+                            e.printStackTrace()
+                            error.value = "Can't load comments"
                         }
                     })
             )

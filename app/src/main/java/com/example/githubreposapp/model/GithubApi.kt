@@ -13,7 +13,7 @@ interface GithubApi {
         @Field("code") code: String
     ): Single<GithubToken> // Single - observer that emits one value then finishes
 
-    @GET("users/repos")
+    @GET("user/repos")
     fun getRepos(): Single<List<GithubRepo>>
 
     @GET("repos/{owner}/{repo}/pulls")
@@ -21,4 +21,11 @@ interface GithubApi {
         @Path("owner") owner: String,
         @Path("repo") repo: String
     ): Single<List<GithubPR>>
+
+    @GET("repos/{owner}/{repo}/issues/{issue_number}/comments")
+    fun getComments(
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Path("issue_number") issueNumber: String
+    ): Single<List<GithubComments>>
 }

@@ -11,6 +11,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import com.example.githubreposapp.R
+import com.example.githubreposapp.model.GithubPR
 import com.example.githubreposapp.model.GithubRepo
 import com.example.githubreposapp.viewmodel.MainViewModel
 import kotlinx.android.synthetic.main.activity_main.*
@@ -61,6 +62,18 @@ class MainActivity : AppCompatActivity() {
 
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 // Load comments
+                if (parent?.selectedItem is GithubPR) {
+                    val githubPR = parent.selectedItem as GithubPR
+                    val currentRepo = parent.selectedItem as GithubRepo
+                    token?.let {
+                        viewModel.onLoadComments(
+                            githubPR.user?.login,
+                            currentRepo.name,
+                            githubPR.number,
+                            it
+                        )
+                    }
+                }
             }
         }
 
@@ -128,6 +141,33 @@ class MainActivity : AppCompatActivity() {
 
                 prsSpinner.adapter = spinnerAdapter
                 prsSpinner.isEnabled = false
+            }
+        })
+
+        viewModel.comments.observe(this, Observer { comments ->
+            if (!comments.isNullOrEmpty()) {
+                val spinnerAdapter = ArrayAdapter(
+                    this@MainActivity,
+                    android.R.layout.simple_spinner_dropdown_item,
+                    comments
+                )
+
+                commentsSpinner.adapter = spinnerAdapter
+                commentsSpinner.isEnabled = true
+                commentET.isEnabled = true
+                postCommentButton.isEnabled = true
+
+            } else {
+                val spinnerAdapter = ArrayAdapter(
+                    this@MainActivity,
+                    android.R.layout.simple_spinner_dropdown_item,
+                    arrayListOf("PR has no comments")
+                )
+
+                commentsSpinner.adapter = spinnerAdapter
+                commentsSpinner.isEnabled = false
+                commentET.isEnabled = true
+                postCommentButton.isEnabled = true
             }
         })
 
